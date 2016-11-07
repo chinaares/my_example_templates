@@ -1,0 +1,147 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Sample Heat template that spins up multiple instances and a private network (JSON)",
+	"Resources": {
+		"heat_security_group_ssh": {
+			"Type": "OS::Neutron::SecurityGroup",
+			"Properties": {
+				"name": "heat-secgroup-ssh",
+				"description": "Allow ICMP, SSH",
+				"rules": [{
+					"remote_ip_prefix": "0.0.0.0/0",
+					"direction": "ingress",
+					"protocol": "tcp",
+					"port_range_min": "22",
+					"port_range_max": "22"
+				},
+				{
+					"remote_ip_prefix": "0.0.0.0/0",
+					"direction": "ingress",
+					"protocol": "icmp"
+				},
+				{
+					"remote_ip_prefix": "0.0.0.0/0",
+					"direction": "egress",
+					"protocol": "icmp"
+				}]
+			}
+		},
+		"heat_network_03": {
+			"Type": "OS::Neutron::Net",
+			"Properties": {
+				"name": "heat-network-03"
+			}
+		},
+		"heat_subnet_03": {
+			"Type": "OS::Neutron::Subnet",
+			"Properties": {
+				"name": "heat-subnet-03",
+				"cidr": "172.16.3.0/24",
+				"dns_nameservers": ["192.168.1.12",
+				"202.106.0.20"],
+				"enable_dhcp": "True",
+				"gateway_ip": "172.16.3.1",
+				"network_id": {
+					"Ref": "heat_network_03"
+				}
+			}
+		},
+		"heat_router_03": {
+			"Type": "OS::Neutron::Router",
+			"Properties": {
+				"admin_state_up": "True",
+				"name": "heat-router-03"
+			}
+		},
+		"heat_router_03_gw": {
+			"Type": "OS::Neutron::RouterGateway",
+			"Properties": {
+				"network": "admin_floating_net",
+				"router_id": {
+					"Ref": "heat_router_03"
+				}
+			}
+		},
+		"heat_router_int0": {
+			"Type": "OS::Neutron::RouterInterface",
+			"Properties": {
+				"router_id": {
+					"Ref": "heat_router_03"
+				},
+				"subnet_id": {
+					"Ref": "heat_subnet_03"
+				}
+			}
+		},
+		"instance0_port0": {
+			"Type": "OS::Neutron::Port",
+			"Properties": {
+				"admin_state_up": "True",
+				"network_id": {
+					"Ref": "heat_network_03"
+				},
+				"security_groups": ["default",
+				{
+					"Ref": "heat_security_group_ssh"
+				}]
+			}
+		},
+		"instance1_port0": {
+			"Type": "OS::Neutron::Port",
+			"Properties": {
+				"admin_state_up": "True",
+				"network_id": {
+					"Ref": "heat_network_03"
+				},
+				"security_groups": ["default",
+				{
+					"Ref": "heat_security_group_ssh"
+				}]
+			}
+		},
+		"instance0_floatingip0": {
+			"Type": "OS::Neutron::FloatingIP",
+			"Properties": {
+				"floating_network": "admin_floating_net",
+				"port_id": {
+					"Ref": "instance0_port0"
+				}
+			}
+		},
+		"instance1_floatingip0": {
+			"Type": "OS::Neutron::FloatingIP",
+			"Properties": {
+				"floating_network": "admin_floating_net",
+				"port_id": {
+					"Ref": "instance1_port0"
+				}
+			}
+		},
+		"instance0": {
+			"Type": "OS::Nova::Server",
+			"Properties": {
+				"name": "heat-inst-03-01",
+				"image": "TestVM",
+				"flavor": "m1.micro",
+				"networks": [{
+					"port": {
+						"Ref": "instance0_port0"
+					}
+				}]
+			}
+		},
+		"instance1": {
+			"Type": "OS::Nova::Server",
+			"Properties": {
+				"name": "heat-inst-03-02",
+				"image": "TestVM",
+				"flavor": "m1.micro",
+				"networks": [{
+					"port": {
+						"Ref": "instance1_port0"
+					}
+				}]
+			}
+		}
+	}
+}

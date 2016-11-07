@@ -1,0 +1,98 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Sample Heat template that spins up multiple instances and a private network (JSON)",
+	"Resources": {
+		"heat_network_01": {
+			"Type": "OS::Neutron::Net",
+			"Properties": {
+				"name": "heat-network-01"
+			}
+		},
+		"heat_subnet_01": {
+			"Type": "OS::Neutron::Subnet",
+			"Properties": {
+				"name": "heat-subnet-01",
+				"cidr": "172.16.1.0/24",
+				"dns_nameservers": ["192.168.1.12","202.106.0.20"],
+				"enable_dhcp": "True",
+				"gateway_ip": "172.16.1.1",
+				"network_id": {
+					"Ref": "heat_network_01"
+				}
+			}
+		},
+		"heat_router_01": {
+			"Type": "OS::Neutron::Router",
+			"Properties": {
+				"admin_state_up": "True",
+				"name": "heat-router-01"
+			}
+		},
+		"heat_router_01_gw": {
+			"Type": "OS::Neutron::RouterGateway",
+			"Properties": {
+				"network": "admin_floating_net",
+				"router_id": {
+					"Ref": "heat_router_01"
+				}
+			}
+		},
+		"heat_router_int0": {
+			"Type": "OS::Neutron::RouterInterface",
+			"Properties": {
+				"router_id": {
+					"Ref": "heat_router_01"
+				},
+				"subnet_id": {
+					"Ref": "heat_subnet_01"
+				}
+			}
+		},
+		"instance0_port0": {
+			"Type": "OS::Neutron::Port",
+			"Properties": {
+				"admin_state_up": "True",
+				"network_id": {
+					"Ref": "heat_network_01"
+				},
+				"security_groups": ["default"]
+			}
+		},
+		"instance1_port0": {
+			"Type": "OS::Neutron::Port",
+			"Properties": {
+				"admin_state_up": "True",
+				"network_id": {
+					"Ref": "heat_network_01"
+				},
+				"security_groups": ["default"]
+			}
+		},
+		"instance0": {
+			"Type": "OS::Nova::Server",
+			"Properties": {
+				"name": "heat-inst-01-01",
+				"image": "TestVM",
+				"flavor": "m1.micro",
+				"networks": [{
+					"port": {
+						"Ref": "instance0_port0"
+					}
+				}]
+			}
+		},
+		"instance1": {
+			"Type": "OS::Nova::Server",
+			"Properties": {
+				"name": "heat-inst-01-02",
+				"image": "TestVM",
+				"flavor": "m1.micro",
+				"networks": [{
+					"port": {
+						"Ref": "instance1_port0"
+					}
+				}]
+			}
+		}
+	}
+}
