@@ -69,20 +69,20 @@ Note Link on Heat template presented in command above should reference on RAW te
 
 *  List the stacks in your tenant:
 ```bash
-$ heat stack-list
+$ openstack stack list
 ```
 
 ## List stack events
 
 *  List the events related to a particular stack:
 ```bash
-$ heat event-list teststack
+$ openstack stack event list teststack
 ```
 Describe the wordpress stack
 
 *  Show detailed state of a stack:
 ```bash
-$ heat stack-show teststack
+$ openstack stack show teststack
 ```
 Note: After a few seconds, the stack_status should change from IN_PROGRESS to CREATE_COMPLETE.
 
@@ -100,6 +100,6 @@ $ curl $WebsiteURL
 
 Note: The list operation will show no running stack.:
 ```bash
-$ heat stack-delete teststack
-$ heat stack-list
+$ openstack stack delete teststack
+$ openstack stack list
 ```
