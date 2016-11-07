@@ -1,0 +1,31 @@
+heat_template_version: 2013-05-23
+
+description: >
+   A simple Heat template that creates a VM
+
+parameters:
+  key_name:
+    type: string
+    label: key name
+    description: Name of the key from which to create the instances.
+  flavor:
+    type: string
+    label: flavor name
+    description: Name of the flavor to be used for the instances.
+  image:
+    type: string
+    label: image name
+    description: Name of the image from which to create the instances.
+    
+resources:
+   server:
+      type: OS::Nova::Server
+      properties:
+        key_name: { get_param: key_name }
+        image: { get_param: image }
+        flavor: { get_param: flavor }
+        networks:
+          - network: admin_internal_net
+        user_data: |
+          #!/bin/bash
+          echo "10.10.10.10 testvm" >> /etc/hosts
